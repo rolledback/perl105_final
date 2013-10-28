@@ -6,9 +6,17 @@ use POSIX 'ceil';
 sub percentagePrint {
    $time = shift;
    $percent = shift;
-   print "\r";
-   for $i (0..($percent / 2)) { print "*"; }
-   print " $percent% ($time seconds)"; 
+   $truePercent = $percent;
+   if($percent > 50 && $percent < 80) { $percent -= 50; }
+   print "\r[";
+   for $i (0..(($percent / 2) - 1)) { print "*"; }
+   for $i (($percent / 2)..49) { print "-"; }
+   print "]";
+   if($truePercent > 65 && $truePercent < 80) { print " Just kidding!    "; }   
+   else { print " $percent% ($time seconds)  "; }
+   print"\r";
+   #for $i (0..($percent / 2)) { print "*"; }
+   #<STDIN>;
 }
 
 my %actors;
@@ -24,8 +32,7 @@ foreach $arg (@ARGV) {
    $totalLines = scalar @lines;
    my $line = 0;
    foreach (@lines) {
-      $line++;
-      if($line % 150 == 0) {
+      if(++$line % 600 == 0) {
          percentagePrint(time() - $startTime, ceil($line / $totalLines * 100));
       }
       chomp();
@@ -43,7 +50,7 @@ foreach $arg (@ARGV) {
       }
    }
    $totalTime += (time() - $startTime);
-   print "\nDone.\n\n";
+   print "\nDone.\n";
 }
 
 $numActors = keys %actors; 
