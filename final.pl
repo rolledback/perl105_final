@@ -2,17 +2,17 @@
 
 use Data::Dumper;
 use POSIX 'ceil';
-
+$| = 1;
 sub percentagePrint {
    $time = shift;
    $percent = shift;
    $truePercent = $percent;
-   if($percent > 47 && $percent < 80) { $percent = 100 - $percent; }
+   if($percent > 50 && $percent < 80) { $percent = 100 - $percent; }
    print "\r[";
    for $i (0..(($percent / 2) - 1)) { print "*"; }
    for $i (($percent / 2)..49) { print "-"; }
    print "]";
-   if($truePercent > 70 && $truePercent < 80) { print " Just kidding!     "; }   
+   if($truePercent > 70 && $truePercent < 80) { print " Just kidding!"; }   
    else { print " $percent% ($time seconds)   "; }
 }
 
@@ -30,7 +30,8 @@ foreach $arg (@ARGV) {
    $totalLines = scalar @lines;
    my $line = 0;
    foreach (@lines) {
-      if(++$line % 600 == 0) {
+      if(++$line % 10000 == 0) {
+         #animated progress bar adds overhead to parsing, comment out for much faster times!
          percentagePrint(time() - $startTime, ceil($line / $totalLines * 100));
       }
       chomp();
