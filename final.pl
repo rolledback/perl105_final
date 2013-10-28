@@ -25,21 +25,19 @@ foreach $arg (@ARGV) {
    my $line = 0;
    foreach (@lines) {
       $line++;
-      if($line % 100 == 0) {
+      if($line % 150 == 0) {
          percentagePrint(time() - $startTime, ceil($line / $totalLines * 100));
       }
       chomp();
-      if($_ =~ /^(.*)\t+(.+?\([\d]+(\/[IXV]*)*\))(.*)/) {  
-         #print ("\$1: $1\t\$2: $2\t\$3: $3\t\$4: $4\n");
+      if($_ =~ /^(.*?)\t+(.+?\([\d]+(\/[IXV]*)*\))(.*)/) {  
          (my $gActor, my $gMovie, my $gRoman, my $gExtra) = ($1, $2, $3, $4);
          if($gActor !~ /^\s*$/) {
             $actor = $gActor;      
          }
          if(index($gExtra, "(TV)") == -1 && index($gExtra, "(VG)") == -1 && index($gExtra, "(V)") == -1 && index($gExtra, "(archive footage)") == -1) {
             if(index($gMovie, "\"") != 0) {
-               push(@{$actors{$actor}}, $gMovie);
-               push(@{$movies{$gMovie}}, $actor);
-		         #print "$actor\n\t$gMovie\n";
+               $actors{$actor}{$gMovie} = 0;
+               $movies{$gMovie}{$actor} = 0;
             }
          }
       }
@@ -52,6 +50,6 @@ $numActors = keys %actors;
 $numMovies = keys %movies;
 $rate = ceil($numActors / $totalTime);
 print "\nA total of $numActors actors in $numMovies movies parsed in $totalTime seconds, at a rate of $rate actors/second.\n";
- 
+
 #print Dumper \%actors;
 #print Dumper \%movies;
