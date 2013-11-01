@@ -1,10 +1,10 @@
 #!/usr/bin/env perl
-use strict;
-
 $| = 1;
 
 my %actors;
 my %movies;
+my %valueCache;
+
 my $totalTime;
 my $actor;
 my $line = 0;
@@ -47,6 +47,48 @@ my $numActors = keys %actors;
 my $numMovies = keys %movies;
 my $rate = int($numActors / $totalTime);
 print "\nDone, total of $numActors actors in $numMovies movies parsed in $totalTime seconds, at a rate of $rate actors/second.\n";
+
+graphSeach("Chaplin, Charles"), "\n";
+
+sub graphSeach {
+   my $target = shift;
+   my %visitedActors;
+   my %visitedMovies;
+   my @queue;
+   my %actorPath;
+
+   push(@queue, "Bacon, Kevin");
+   $visitedActors{"Bacon, Kevin"} = 1;
+
+   while(scalar @queue != 0) {
+      $currentActor = pop(@queue);
+      if($currentActor eq $target) {
+         $parent = $actorPath{$currentActor};
+         print "$target\n";
+         while(defined $parent) {
+            print "$parent\n";
+            $parent = $actorPath{$parent};
+         }
+         return $currentActor;
+      }
+      else { 
+         my $filmList = $actors{$currentActor};
+         foreach my $film (keys %{$filmList}) {
+            if(!exists $visitedMovies{$film}) {
+               $actorList = $movies{$film};
+               $visitedMovies{$film} = 1;
+               foreach my $actor (keys %{$actorList}) {
+                  if(!exists $visitedActors{$actor}) {
+                     unshift(@queue, $actor);
+                     $visitedActors{$actor} = 1;
+                     $actorPath{$actor} = $currentActor;
+                  }
+               }
+            }
+         }
+      }
+   }
+}
 
 sub percentagePrint {
    my $time = shift;
