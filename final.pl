@@ -1,9 +1,11 @@
 #!/usr/bin/env perl
+
+use Data::Dumper;
+use strict;
 $| = 1;
 
 my %actors;
 my %movies;
-my %valueCache;
 
 my $totalTime;
 my $actor;
@@ -48,40 +50,77 @@ my $numMovies = keys %movies;
 my $rate = int($numActors / $totalTime);
 print "\nDone, total of $numActors actors in $numMovies movies parsed in $totalTime seconds, at a rate of $rate actors/second.\n";
 
-graphSeach("Chaplin, Charles"), "\n";
+print "Actor/Actress? ";
+while(<STDIN>) {
+   chomp;
+   takeInput($_); 
+   print "Actor/Actress? ";  
+}
 
-sub graphSeach {
+sub takeInput() {
+   my $name = shift;
+   if(exists $actors{$name}) {
+      graphSearch($name);
+   }
+   else {
+      my $match = 1;
+      my @keywords = split(' ', $name);
+      my @matches;
+      foreach my $actor (keys %actors) {
+         foreach my $keyword (@keywords) {
+            $keyword = lc $keyword;
+            if(lc $actor !~ /\b$keyword,?\b/i) {
+               $match = 0;
+               last;
+            }
+         }
+         if($match == 1) { push(@matches, $actor); }
+         $match  = 1;
+      }
+      if(scalar @matches == 0) { print "No matches found.\n"; }
+      elsif(scalar @matches == 1) { graphSearch($matches[0]); }
+      else { 
+         print "Did you mean:\n"; 
+         foreach $match (@matches) { print "$match\n"; }
+      }
+   }     
+}
+
+sub graphSearch {
    my $target = shift;
    my %visitedActors;
    my %visitedMovies;
    my @queue;
-   my %actorPath;
+   my %path;
+   my %films;
 
    push(@queue, "Bacon, Kevin");
    $visitedActors{"Bacon, Kevin"} = 1;
 
    while(scalar @queue != 0) {
-      $currentActor = pop(@queue);
+      my $currentActor = pop(@queue);
       if($currentActor eq $target) {
-         $parent = $actorPath{$currentActor};
-         print "$target\n";
-         while(defined $parent) {
-            print "$parent\n";
-            $parent = $actorPath{$parent};
+         while(defined $currentActor) {
+            print "$currentActor\n";
+            if(exists $films{$currentActor}{$path{$currentActor}}) {
+               print "\t$films{$currentActor}{$path{$currentActor}}\n";
+            }
+            $currentActor = $path{$currentActor};
          }
-         return $currentActor;
+         return;
       }
       else { 
          my $filmList = $actors{$currentActor};
          foreach my $film (keys %{$filmList}) {
             if(!exists $visitedMovies{$film}) {
-               $actorList = $movies{$film};
+               my $actorList = $movies{$film};
                $visitedMovies{$film} = 1;
                foreach my $actor (keys %{$actorList}) {
                   if(!exists $visitedActors{$actor}) {
                      unshift(@queue, $actor);
                      $visitedActors{$actor} = 1;
-                     $actorPath{$actor} = $currentActor;
+                     $path{$actor} = $currentActor;
+                     $films{$actor}{$currentActor} = $film;
                   }
                }
             }
