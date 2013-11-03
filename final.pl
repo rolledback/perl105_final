@@ -48,7 +48,7 @@ foreach (@lines) {
 my $numActors = keys %actors; 
 my $numMovies = keys %movies;
 my $rate = int($numActors / $totalTime);
-print "\nDone, total of $numActors actors in $numMovies movies parsed in $totalTime seconds, at a rate of $rate actors/second.\n";
+print "\nDone, total of $numActors actors in $numMovies movies parsed in $totalTime seconds, at a rate of $rate actors/second.\n\n";
 
 print "Actor/Actress? ";
 while(<STDIN>) {
@@ -60,7 +60,7 @@ while(<STDIN>) {
 sub takeInput() {
    my $name = shift;
    if(exists $actors{$name}) {
-      graphSearch($name);
+      print graphSearch($name), "\n";
    }
    else {
       my $match = 1;
@@ -78,7 +78,7 @@ sub takeInput() {
          $match  = 1;
       }
       if(scalar @matches == 0) { print "No matches found.\n"; }
-      elsif(scalar @matches == 1) { graphSearch($matches[0]); }
+      elsif(scalar @matches == 1) { print graphSearch($matches[0]), "\n"; }
       else { 
          print "Did you mean:\n"; 
          foreach $match (@matches) { print "$match\n"; }
