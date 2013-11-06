@@ -7,6 +7,13 @@ $| = 1;
 my %actors;
 my %movies;
 
+my %cache;
+my @queue;
+my %path;
+my %films;
+my %visitedActors;
+my %visitedMovies;
+
 my $totalTime;
 my $actor;
 my $line = 0;
@@ -48,9 +55,13 @@ foreach (@lines) {
 my $numActors = keys %actors; 
 my $numMovies = keys %movies;
 my $rate = int($numActors / $totalTime);
-print "\nDone, total of $numActors actors in $numMovies movies parsed in $totalTime seconds, at a rate of $rate actors/second.\n\n";
+#print "\nDone, total of $numActors actors in $numMovies movies parsed in $totalTime seconds, at a rate of $rate actors/second.\n\n";
 
-print "Actor/Actress? ";
+foreach $actor (keys %actors) {
+   graphSearch($actor, 0);
+}
+
+print "\nActor/Actress? ";
 while(<STDIN>) {
    chomp;
    takeInput($_); 
@@ -59,8 +70,9 @@ while(<STDIN>) {
 
 sub takeInput() {
    my $name = shift;
+   if (!$name) { die };
    if(exists $actors{$name}) {
-      print graphSearch($name), "\n";
+      graphSearch($name, 1), "\n";
    }
    else {
       my $match = 1;
@@ -78,7 +90,7 @@ sub takeInput() {
          $match  = 1;
       }
       if(scalar @matches == 0) { print "No matches found.\n"; }
-      elsif(scalar @matches == 1) { print graphSearch($matches[0]), "\n"; }
+      elsif(scalar @matches == 1) { graphSearch($matches[0], 1), "\n"; }
       else { 
          print "Did you mean:\n"; 
          foreach $match (@matches) { print "$match\n"; }
@@ -86,29 +98,34 @@ sub takeInput() {
    }     
 }
 
-sub graphSearch {
-   my $target = shift;
-   my %visitedActors;
-   my %visitedMovies;
-   my @queue;
-   my %path;
-   my %films;
+sub mapPrint {
+   my $initial = shift;
+   my $p = shift;
+   my $baconNum = -1;
+   while(defined $initial) {
+      if($p == 1) { print "$initial\n"; }
+      if(exists $films{$initial}{$path{$initial}}) {
+         if($p == 1) { print "\t$films{$initial}{$path{$initial}}\n"; }
+      }
+      $initial = $path{$initial};
+      $baconNum++;
+   }
+   return $baconNum
+}
 
+sub graphSearch {
+   my $target = shift;   
+   my $currentActor;
+   my $p = shift;
+
+   if(exists $cache{$target}) { return mapPrint($target, $p); }
+   
    push(@queue, "Bacon, Kevin");
    $visitedActors{"Bacon, Kevin"} = 1;
 
    while(scalar @queue != 0) {
-      my $currentActor = pop(@queue);
-      if($currentActor eq $target) {
-         while(defined $currentActor) {
-            print "$currentActor\n";
-            if(exists $films{$currentActor}{$path{$currentActor}}) {
-               print "\t$films{$currentActor}{$path{$currentActor}}\n";
-            }
-            $currentActor = $path{$currentActor};
-         }
-         return;
-      }
+      $currentActor = pop(@queue);
+      if($currentActor eq $target) { return mapPrint($currentActor, $p); }
       else { 
          my $filmList = $actors{$currentActor};
          foreach my $film (keys %{$filmList}) {
@@ -118,6 +135,7 @@ sub graphSearch {
                foreach my $actor (keys %{$actorList}) {
                   if(!exists $visitedActors{$actor}) {
                      unshift(@queue, $actor);
+                     $cache{$actor} = 1;
                      $visitedActors{$actor} = 1;
                      $path{$actor} = $currentActor;
                      $films{$actor}{$currentActor} = $film;
@@ -127,6 +145,8 @@ sub graphSearch {
          }
       }
    }
+   if($p == 1) { print "No connection found.\n"; }
+   return -1;
 }
 
 sub percentagePrint {
