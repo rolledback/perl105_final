@@ -1,5 +1,8 @@
 #!/usr/bin/env perl
 
+use utf8;
+use feature unicode_strings;
+
 $| = 1;
 
 my %actors;
@@ -81,11 +84,11 @@ sub takeInput() {
    }
    else {
       my $match = 1;
+      $name = lc $name;
       my @keywords = split(' ', $name);
       my @matches;
       foreach my $actor (keys %actors) {
          foreach my $keyword (@keywords) {
-            $keyword = lc $keyword;
             if(lc $actor !~ /\b$keyword,?\b/i) {
                $match = 0;
                last;
