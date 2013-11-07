@@ -1,7 +1,5 @@
 #!/usr/bin/env perl
 
-use Data::Dumper;
-use strict;
 $| = 1;
 
 my %actors;
@@ -35,7 +33,7 @@ foreach (@lines) {
    if($curPercent != $oldPercent) {
       $oldPercent = $curPercent;
       $totalTime = (time() - $startTime);
-      percentagePrint($totalTime, $curPercent);
+      percentagePrint($totalTime, $curPercent, 1);
    }
    chomp();
    if($_ =~ /^(.*?)\t+(.+?\([\d]+(\/[IXV]*)*\))(.*)/) {  
@@ -52,13 +50,19 @@ foreach (@lines) {
    }
 }
 
-my $numActors = keys %actors; 
-my $numMovies = keys %movies;
-my $rate = int($numActors / $totalTime);
-#print "\nDone, total of $numActors actors in $numMovies movies parsed in $totalTime seconds, at a rate of $rate actors/second.\n\n";
-
+$line = 0;
+$totalLines = keys %actors;
+print "\nBuilding Bacon Map:\n";
+$startTime = time();
 foreach $actor (keys %actors) {
    graphSearch($actor, 0);
+   $line++;
+   $curPercent = int($line / $totalLines * 100);
+   if($curPercent != $oldPercent) {
+      $oldPercent = $curPercent;
+      $totalTime = (time() - $startTime);
+      percentagePrint($totalTime, $curPercent, 0);
+   }
 }
 
 print "\nActor/Actress? ";
@@ -70,6 +74,7 @@ while(<STDIN>) {
 
 sub takeInput() {
    my $name = shift;
+   if($name =~ /^\s*$/) { exit; }
    if (!$name) { die };
    if(exists $actors{$name}) {
       graphSearch($name, 1), "\n";
@@ -152,12 +157,13 @@ sub graphSearch {
 sub percentagePrint {
    my $time = shift;
    my $percent = shift;
+   my $joke = shift;
    my $truePercent = $percent;
-   if($percent > 50 && $percent < 80) { $percent = 100 - $percent; }
+   if($percent > 50 && $percent < 80 && $joke == 1) { $percent = 100 - $percent; }
    print "\r[";
    if($percent != 1) { for (0..(($percent / 2) - 1)) { print "*"; } }
    for (($percent / 2)..49) { print "-"; }
    print "]";
-   if($truePercent > 70 && $truePercent < 80) { print " Just kidding!    "; }   
+   if($truePercent > 70 && $truePercent < 80 && $joke == 1) { print " Just kidding!    "; }   
    else { print " $percent% ($time seconds)   "; }
 }
