@@ -1,27 +1,34 @@
 #!/usr/bin/env perl
 
+#Matthew Rayermann: mrr2578
+#Nada Ismail: ngi73
+
 use utf8;
 use feature unicode_strings;
 
 $| = 1;
 
+#hashes for storing actors->movies and movies->actors
 my %actors;
 my %movies;
 
-my %cache;
+#bfs data structures
 my @queue;
+my %cache;
 my %path;
 my %films;
 my %visitedActors;
 my %visitedMovies;
 
+#parsing variables
 my $totalTime;
 my $actor;
 my $line = 0;
 my $oldPercent = -1;
 my $curPercent = 0;
-
 my @lines;
+
+#zcat tar balls to an array
 foreach my $arg (@ARGV) {
    push(@lines, `zcat $arg`);
 }
@@ -30,6 +37,7 @@ print "Parsing files...\n";
 my $startTime = time();
 my $totalLines = scalar @lines;
 
+#read in tar balls of actors, ignore TV shows, video games, direct to video, and archives
 foreach (@lines) {
    $line++;
    $curPercent = int($line / $totalLines * 100);
@@ -53,6 +61,7 @@ foreach (@lines) {
    }
 }
 
+#construct mappings for all actors before allowing searching
 $line = 0;
 $totalLines = keys %actors;
 print "\nBuilding Bacon Map:\n";
@@ -68,6 +77,7 @@ foreach $actor (keys %actors) {
    }
 }
 
+#while loop to take user input
 print "\nActor/Actress? ";
 while(<STDIN>) {
    chomp;
@@ -75,6 +85,7 @@ while(<STDIN>) {
    print "Actor/Actress? ";  
 }
 
+#parse user input, blank line exits, exact matches are searched, else search by case insensitive keyword
 sub takeInput() {
    my $name = shift;
    if($name =~ /^\s*$/) { exit; }
@@ -94,8 +105,8 @@ sub takeInput() {
                last;
             }
          }
-         if($match == 1) { push(@matches, $actor); }
-         $match  = 1;
+         if($match) { push(@matches, $actor); }
+         $match = 1;
       }
       if(scalar @matches == 0) { print "No matches found.\n"; }
       elsif(scalar @matches == 1) { graphSearch($matches[0], 1), "\n"; }
@@ -106,14 +117,15 @@ sub takeInput() {
    }     
 }
 
+#print the mapping/path between an actor and Kevin Bacon
 sub mapPrint {
    my $initial = shift;
    my $p = shift;
    my $baconNum = -1;
    while(defined $initial) {
-      if($p == 1) { print "$initial\n"; }
+      if($p) { print "$initial\n"; }
       if(exists $films{$initial}{$path{$initial}}) {
-         if($p == 1) { print "\t$films{$initial}{$path{$initial}}\n"; }
+         if($p) { print "\t$films{$initial}{$path{$initial}}\n"; }
       }
       $initial = $path{$initial};
       $baconNum++;
@@ -121,6 +133,7 @@ sub mapPrint {
    return $baconNum
 }
 
+#search for a specific actor using bfs, results are cached
 sub graphSearch {
    my $target = shift;   
    my $currentActor;
@@ -157,16 +170,17 @@ sub graphSearch {
    return -1;
 }
 
+#print progress bar
 sub percentagePrint {
    my $time = shift;
    my $percent = shift;
    my $joke = shift;
    my $truePercent = $percent;
-   if($percent > 50 && $percent < 80 && $joke == 1) { $percent = 100 - $percent; }
+   if($percent > 50 && $percent < 80 && $joke) { $percent = 100 - $percent; }
    print "\r[";
    if($percent != 1) { for (0..(($percent / 2) - 1)) { print "*"; } }
    for (($percent / 2)..49) { print "-"; }
    print "]";
-   if($truePercent > 70 && $truePercent < 80 && $joke == 1) { print " Just kidding!    "; }   
+   if($truePercent > 70 && $truePercent < 80 && $joke) { print " Just kidding!    "; }   
    else { print " $percent% ($time seconds)   "; }
 }
