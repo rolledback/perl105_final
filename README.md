@@ -1,4 +1,4 @@
 perl105_final
 =============
 
-Final project for Curtis Dunhams Perl Programming Class, Fall 2013.
+Final project for Curtis Dunham's Perl Programming Class, Fall 2013.
